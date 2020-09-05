@@ -4,8 +4,15 @@
   "description": "This is an BOT create with Node <Js>",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
   },
+  "keywords": [
+    "discord",
+    "javascript",
+    "node",
+    "discordjs"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Victor1890/Victor1890_BOT.git"
@@ -15,5 +22,12 @@
   "bugs": {
     "url": "https://github.com/Victor1890/Victor1890_BOT/issues"
   },
-  "homepage": "https://github.com/Victor1890/Victor1890_BOT#readme"
+  "homepage": "https://github.com/Victor1890/Victor1890_BOT#readme",
+  "dependencies": {
+    "discord.js": "^12.3.1"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0",
+    "nodemon": "^2.0.4"
+  }
 }
