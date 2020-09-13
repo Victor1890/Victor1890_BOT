@@ -1,12 +1,15 @@
-const { MessageEmbed } = require("discord.js");
+const Discord = require("discord.js");
 
-const MsgEmbed = (title, author, description) => {
-  const _MsgEmbed = new MessageEmbed()
-    .setTitle(title || "Welcome to the Server")
-    .setAuthor(author || "Victor1890")
-    .setColor("#0EEAFF")
-    .setDescription(description || "Description");
-  return _MsgEmbed;
+const messageEmbed = ({ authorName, title, content }) => {
+  const parseContent = content.map((i) => `${i}\n`);
+
+  const msgEmbed = new Discord.MessageEmbed()
+    .setColor("#0099ff")
+    .setTitle(`Hola ${authorName}`)
+    .setDescription(`${title} ${parseContent}`)
+    .setFooter("Comunidad de Victor1890.DEV");
+
+  return msgEmbed;
 };
 
-module.exports = MsgEmbed;
+module.exports = messageEmbed;
