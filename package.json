@@ -25,8 +25,8 @@
   "homepage": "https://github.com/Victor1890/Victor1890_BOT#readme",
   "dependencies": {
     "discord.js": "^12.3.1",
-    "ffmpeg-static": "^4.2.7",
     "opusscript": "0.0.7",
+    "simple-youtube-api": "^5.2.1",
     "ytdl-core": "^3.2.2"
   },
   "devDependencies": {
