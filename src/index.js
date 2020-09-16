@@ -7,7 +7,7 @@ const rules = require("./utils/rules.json");
 
 const PREFIX = "!";
 
-client.on("message", async (message) => {
+client.on("message", (message) => {
   if (message.author.bot) return;
 
   Play(message, PREFIX);

@@ -11,7 +11,7 @@ const Play = async (message, PREFIX) => {
   if (!message.content.startsWith(PREFIX)) return;
 
   if (!message.channel.name.includes("music"))
-    return message.channel.send(`Please go to the _**music**_ channel`);
+    return message.channel.send(`Please go to the __**music**__ channel`);
 
   const args = message.content.substring(PREFIX.length).split(" ");
   const searchString = args.slice(1).join(" ");
@@ -55,8 +55,30 @@ const Play = async (message, PREFIX) => {
         var video = await youtube.getVideoByID(url);
       } catch (error) {
         try {
-          var videos = await youtube.searchVideos(searchString, 1);
-          var video = await youtube.getVideoByID(videos[0].id);
+          var videos = await youtube.searchVideos(searchString, 10);
+          var index = 0;
+          message.channel.send(`
+                __**Song Selection**__
+                ${videos
+                  .map((videos2) => `**${++index} -** ${videos2.title}`)
+                  .join("\n")}
+
+                Please select one for the song ranging from 1-10`);
+
+          try {
+            var response = await message.channel.awaitMessages(
+              (msg) => msg.content > 0 && msg.content < 11,
+              {
+                max: 1,
+                time: 30000,
+                errors: ["time"],
+              }
+            );
+          } catch (error) {
+            message.channel.send(`No or invalid song selection was provided`);
+          }
+          const videoIndex = parseInt(response.first().content);
+          var video = await youtube.getVideoByID(videos[videoIndex - 1].id);
         } catch (error) {
           message.channel.send(`I couldn't find any search results`);
         }
@@ -133,6 +155,16 @@ const Play = async (message, PREFIX) => {
     serverQueue.playing = true;
     serverQueue.connection.dispatcher.resume();
     message.channel.send("I have resumed the music for you");
+  } else if (message.content.startsWith(`${PREFIX}loop`)) {
+    if (!message.member.voice.channel)
+      return message.channel.send(
+        "You need to be in a voice channel to use music command"
+      );
+    if (!serverQueue) return message.channel.send("There is nothing playing");
+    serverQueue.loop = !serverQueue.loop;
+    return message.channel.send(
+      `I have now ${serverQueue.loop ? `**Enabled**` : `**Disabled**`} loop`
+    );
   }
 };
 
@@ -153,6 +185,7 @@ const handleVideo = async (video, message, voiceChannel, playList = false) => {
       songs: [],
       volume: 5,
       playing: true,
+      loop: false,
     };
     queue.set(message.guild.id, queueConstruct);
     queueConstruct.songs.push(song);
@@ -186,7 +219,7 @@ const musicPlay = (guild, song) => {
   const dispatcher = serverQueue.connection
     .play(ytdl(song.url))
     .on("finish", () => {
-      serverQueue.songs.shift();
+      if (!serverQueue.loop) serverQueue.songs.shift();
       musicPlay(guild, serverQueue.songs[0]);
     });
 
