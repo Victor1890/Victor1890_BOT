@@ -1,6 +1,8 @@
 const Youtube = require("simple-youtube-api");
 const ytdl = require("ytdl-core");
 const config = require("../config/config");
+const getMusicPlay = require("../utils/getMusicPlay");
+const handleVideo = require("../utils/handleVideo");
 const queue = new Map();
 
 const youtube = new Youtube(config.Y_TOKEN);
@@ -29,12 +31,12 @@ const Play = async (message, PREFIX) => {
 
     if (!permission.has("CONNECT"))
       return message.channel.send(
-        `I don't have permissions to connect to the voice channel`
+        `I don't have permissions to connect to the voice channel`,
       );
 
     if (!permission.has("SPEAK"))
       return message.channel.send(
-        `I don't have permissions to 'Speak' in the voice channel`
+        `I don't have permissions to 'Speak' in the voice channel`,
       );
 
     if (
@@ -45,10 +47,17 @@ const Play = async (message, PREFIX) => {
 
       for (const video of Object.values(videos)) {
         const videos2 = await youtube.getVideoByID(video);
-        await handleVideo(videos2, message, voiceChannel, true);
+        await handleVideo({
+          videos2,
+          message,
+          voiceChannel,
+          playList: true,
+          queue,
+          ytdl,
+        });
       }
       message.channel.send(
-        `Playlist **${playList.title}** has been added to the queue`
+        `Playlist **${playList.title}** has been added to the queue`,
       );
     } else {
       try {
@@ -72,7 +81,7 @@ const Play = async (message, PREFIX) => {
                 max: 1,
                 time: 30000,
                 errors: ["time"],
-              }
+              },
             );
           } catch (error) {
             message.channel.send(`No or invalid song selection was provided`);
@@ -83,13 +92,13 @@ const Play = async (message, PREFIX) => {
           message.channel.send(`I couldn't find any search results`);
         }
       }
-      return handleVideo(video, message, voiceChannel);
+      return handleVideo({ video, message, voiceChannel, queue, ytdl });
     }
   } else if (message.content.startsWith(`${PREFIX}stop`)) {
     //Stop music
     if (!message.member.voice.channel)
       return message.channel.send(
-        "You need to be in a voice channel to stop music"
+        "You need to be in a voice channel to stop music",
       );
     if (!serverQueue) return message.channel.send("There is nothing playing");
     serverQueue.songs = [];
@@ -99,7 +108,7 @@ const Play = async (message, PREFIX) => {
     //Skip music
     if (!message.member.voice.channel)
       return message.channel.send(
-        "You need to be in voice channel to skip the music"
+        "You need to be in voice channel to skip the music",
       );
     if (!serverQueue) return message.channel.send("There nothing playing");
     serverQueue.connection.dispatcher.end();
@@ -107,14 +116,14 @@ const Play = async (message, PREFIX) => {
   } else if (message.content.startsWith(`${PREFIX}volumen`)) {
     if (!message.member.voice.channel)
       return message.channel.send(
-        "You need to be in a voice channel to use music command"
+        "You need to be in a voice channel to use music command",
       );
     if (!serverQueue) return message.channel.send("There is nothing playing");
     if (!args[1])
       return message.channel.send(`That volume is: **${serverQueue.volume}**`);
     if (isNaN(args[1]))
       return message.channel.send(
-        `That is not valid amount to change the volume to`
+        `That is not valid amount to change the volume to`,
       );
     serverQueue.volume = args[1];
     serverQueue.connection.dispatcher.setVolumeLogarithmic(args[1] / 5);
@@ -130,12 +139,12 @@ const Play = async (message, PREFIX) => {
 
     **Now Playing:** ${serverQueue.songs[0].title}
     `,
-      { split: true }
+      { split: true },
     );
   } else if (message.content.startsWith(`${PREFIX}pause`)) {
     if (!message.member.voice.channel)
       return message.channel.send(
-        "You need to be in a voice channel to use music command"
+        "You need to be in a voice channel to use music command",
       );
     if (!serverQueue) return message.channel.send("There is nothing playing");
     if (!serverQueue.playing)
@@ -146,7 +155,7 @@ const Play = async (message, PREFIX) => {
   } else if (message.content.startsWith(`${PREFIX}resume`)) {
     if (!message.member.voice.channel)
       return message.channel.send(
-        "You need to be in a voice channel to use music command"
+        "You need to be in a voice channel to use music command",
       );
     if (!serverQueue) return message.channel.send("There is nothing playing");
     if (!serverQueue.playing)
@@ -158,73 +167,14 @@ const Play = async (message, PREFIX) => {
   } else if (message.content.startsWith(`${PREFIX}loop`)) {
     if (!message.member.voice.channel)
       return message.channel.send(
-        "You need to be in a voice channel to use music command"
+        "You need to be in a voice channel to use music command",
       );
     if (!serverQueue) return message.channel.send("There is nothing playing");
     serverQueue.loop = !serverQueue.loop;
     return message.channel.send(
-      `I have now ${serverQueue.loop ? `**Enabled**` : `**Disabled**`} loop`
+      `I have now ${serverQueue.loop ? `**Enabled**` : `**Disabled**`} loop`,
     );
   }
-};
-
-const handleVideo = async (video, message, voiceChannel, playList = false) => {
-  const serverQueue = queue.get(message.guild.id);
-
-  const song = {
-    id: video.id,
-    title: video.title,
-    url: `https://www.youtube.com/watch?v=${video.id}`,
-  };
-
-  if (!serverQueue) {
-    const queueConstruct = {
-      textChannel: message.channel,
-      voiceChannel: voiceChannel,
-      connection: null,
-      songs: [],
-      volume: 5,
-      playing: true,
-      loop: false,
-    };
-    queue.set(message.guild.id, queueConstruct);
-    queueConstruct.songs.push(song);
-
-    try {
-      var connection = await voiceChannel.join();
-      queueConstruct.connection = connection;
-      musicPlay(message.guild, queueConstruct.songs[0]);
-    } catch (error) {
-      queue.delete(message.guild.id);
-      return message.channel.send(
-        "There was an error connecting to the voice channel"
-      );
-    }
-  } else {
-    serverQueue.songs.push(song);
-    if (playList) return undefined;
-    return message.channel.send(`**${song.title}** has been added the queue`);
-  }
-};
-
-const musicPlay = (guild, song) => {
-  const serverQueue = queue.get(guild.id);
-
-  if (!song) {
-    serverQueue.voiceChannel.leave();
-    queue.delete(guild.id);
-    return;
-  }
-
-  const dispatcher = serverQueue.connection
-    .play(ytdl(song.url))
-    .on("finish", () => {
-      if (!serverQueue.loop) serverQueue.songs.shift();
-      musicPlay(guild, serverQueue.songs[0]);
-    });
-
-  dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
-  serverQueue.textChannel.send(`Start playing: **${song.title}**`);
 };
 
 module.exports = Play;
