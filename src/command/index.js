@@ -14,19 +14,21 @@ const ytdl = require("ytdl-core");
 const queue = new Map();
 const youtube = new Youtube(config.Y_TOKEN);
 
-const command = (message, { PREFIX = "!" }) => {
+const command = ({ message, PREFIX = "!" }) => {
+  console.log(message);
   if (!message.content.startsWith(PREFIX)) return;
 
   if (!message.channel.name.includes("music"))
     return message.channel.send(`Please go to the __**music**__ channel`);
 
   const args = message.content.substring(PREFIX.length).split(" ");
+  const serverQueue = queue.get(message.guild.id);
   const searchString = args.slice(1).join(" ");
   const url = args[1] ? args[1].replace(/<(.+)>/g, "$1") : "";
-  const serverQueue = queue.get(message.guild.id);
+  console.log(serverQueue);
 
   if (message.content.startsWith(`${PREFIX}play`)) {
-    PlayMusic({ message, youtube, searchString, url, ytdl });
+    PlayMusic({ message, youtube, searchString, url, ytdl, queue });
   } else if (message.content.startsWith(`${PREFIX}pause`)) {
     PauseMusic({ message, serverQueue });
   } else if (message.content.startsWith(`${PREFIX}stop`)) {

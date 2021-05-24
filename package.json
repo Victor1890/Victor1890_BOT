@@ -1,6 +1,6 @@
 {
   "name": "victor1890_bot",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "This is an BOT create with Node <Js>",
   "main": "index.js",
   "scripts": {

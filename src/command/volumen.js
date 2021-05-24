@@ -1,4 +1,5 @@
 const VolumenMusic = ({ serverQueue, args, message }) => {
+  console.log(args[1]);
   if (!message.member.voice.channel)
     return message.channel.send(
       "You need to be in a voice channel to use music command",
@@ -11,7 +12,12 @@ const VolumenMusic = ({ serverQueue, args, message }) => {
       `That is not valid amount to change the volume to`,
     );
   serverQueue.volume = args[1];
-  serverQueue.connection.dispatcher.setVolumeLogarithmic(args[1] / 5);
+  try {
+    serverQueue.connection.dispatcher.setVolumeLogarithmic(args[1] / 5);
+  } catch (error) {
+    console.log(error.message);
+  }
+  console.log(serverQueue.connection);
   message.channel.send(`I have changed the volume to: **${args[1]}**`);
 };
 

@@ -1,4 +1,13 @@
-const PlayMusic = async ({ message, youtube, searchString, url, ytdl }) => {
+const handleVideo = require("../utils/handleVideo");
+
+const PlayMusic = async ({
+  message,
+  youtube,
+  searchString,
+  url,
+  ytdl,
+  queue,
+}) => {
   //Play music
   const voiceChannel = message.member.voice.channel;
 

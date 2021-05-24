@@ -10,7 +10,7 @@ const PREFIX = "!";
 client.on("message", (message) => {
   if (message.author.bot) return;
 
-  command(message);
+  command({ message });
 
   if (message.content.toLocaleLowerCase() === "!rules") {
     message.channel.send(

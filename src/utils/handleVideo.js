@@ -1,4 +1,4 @@
-const getMusicPlay = require("./getMusicPlay");
+const getMusicPlay = require("../utils/getMusicPlay");
 
 const handleVideo = async ({
   video,
