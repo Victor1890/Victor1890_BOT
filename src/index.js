@@ -1,7 +1,7 @@
 const { Client } = require("discord.js");
+const { command } = require("./command");
 const config = require("./config/config");
 const client = new Client();
-const Play = require("./command/music");
 const msgEmbed = require("./utils/MsgEmbed");
 const rules = require("./utils/rules.json");
 
@@ -10,7 +10,7 @@ const PREFIX = "!";
 client.on("message", (message) => {
   if (message.author.bot) return;
 
-  Play(message, PREFIX);
+  command(message);
 
   if (message.content.toLocaleLowerCase() === "!rules") {
     message.channel.send(
@@ -18,7 +18,7 @@ client.on("message", (message) => {
         authorName: message.author.username,
         title: rules.customMessage,
         content: rules.rules,
-      })
+      }),
     );
   }
 });
